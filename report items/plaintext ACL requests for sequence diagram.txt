@@ -10,6 +10,13 @@ Customer <==> Manufactuer:
 		(orderPhone(
 			:specification phoneSpecification))
 
+(Refuse
+	:sender Manufacturer
+	:receiver Customer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content (order refuse))
+
 (Agree
 	:sender Manufacturer
 	:receiver Customer
