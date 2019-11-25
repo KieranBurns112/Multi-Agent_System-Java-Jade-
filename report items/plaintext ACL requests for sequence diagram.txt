@@ -1,0 +1,53 @@
+Customer <==> Manufactuer:
+
+(request
+	:sender Customer
+	:receiver Manufacturer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content
+		action Manufacturer
+		(orderPhone(
+			:specification phoneSpecification))
+
+(Agree
+	:sender Manufacturer
+	:receiver Customer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content (order confirm))
+
+(inform-done
+	:sender Manufacturer
+	:receiver Customer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content (order completed & sent for delivery))	
+
+
+
+Manufacturer <==> Supplier:
+
+(request
+	:sender Manufacturer
+	:receiver Supplier
+	:ontology SupplyChain
+	:language fipa-sl
+	:content
+		action Supplier
+		(orderParts(:parts requestedParts))
+
+(Agree
+	:sender Supplier
+	:receiver Manufacturer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content (order confirm))
+
+(inform-done
+	:sender Supplier
+	:receiver Manufacturer
+	:ontology SupplyChain
+	:language fipa-sl
+	:content (order completed & sent for delivery))	
+
