@@ -1,0 +1,20 @@
+package supplyChain;
+
+import jade.core.*;
+import jade.core.Runtime;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+
+public class Application {
+
+	public static void main(String[] args) {
+		Profile myProfile = new ProfileImpl();
+		Runtime myRuntime = Runtime.instance();
+		try {
+			
+		}
+		catch(Exception e) {
+			System.out.println("Error initialising agents");
+		}
+	}	
+}

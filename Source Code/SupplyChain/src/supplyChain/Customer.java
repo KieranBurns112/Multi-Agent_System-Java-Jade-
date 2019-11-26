@@ -1,5 +1,7 @@
 package supplyChain;
 
-public class Customer {
+import jade.core.Agent;
+
+public class Customer extends Agent{
 
 }
