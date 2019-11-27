@@ -22,21 +22,12 @@ public class Application {
 			AgentController manufacturer = myContainer.createNewAgent("manufacturer", Manufacturer.class.getCanonicalName(), null);
 			manufacturer.start();
 			
-			AgentController customer;
 			for (int i = 0; i < customers; i++)
 			{
-				customer = myContainer.createNewAgent("customer" + (i+1), Customer.class.getCanonicalName(), null);
-				customer.start();
+				
 			}
 			
-			AgentController supplier;
-			// !! loop size (2) is hard-coded until I work out what I'm doing with the suppliers !!
-			for (int i = 0; i < 2; i++)		
-			{
-				supplier = myContainer.createNewAgent("supplier" + (i+1), Supplier.class.getCanonicalName(), null);
-				supplier.start();
-			}
-			
+			// start both suppliers
 		}
 		catch(Exception e) {
 			System.out.println("Error initialising agents");
