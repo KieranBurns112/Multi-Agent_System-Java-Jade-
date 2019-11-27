@@ -1,0 +1,67 @@
+package supplyChain;
+
+import jade.core.Agent;
+
+public class Customer extends Agent {
+	protected void setup() {
+	
+		System.out.println("Agent "+getAID().getName()+" is active."); //Test line to show agent is functional.
+		
+		Order thisOrder = new Order();
+		
+		PhoneSpecification specification = generatePhone(); //Specification of phones being ordered
+		int quantity = (int) Math.floor(1 + (50*Math.random())); //Quantity of specified phone being requested.
+		int unitPrice = (int) Math.floor(100 + (500*Math.random())); //Price of each phone specified.
+		int dueDays = (int) Math.floor(1 + (10*Math.random())); //Number of days till order is due.
+		int pentalty = quantity * ((int) Math.floor(1 + (50*Math.random()))); //Penalty for late order delivery.
+	}
+	
+	//	This method is hard-coded, but can easily be added to by changing the 
+	//	range of the generated random numbers, to encompass each possible phone 
+	//	part within the Order class.
+	private PhoneSpecification generatePhone() {
+		PhoneSpecification phone = new PhoneSpecification();
+		
+		// generate a random number between 0 and 1, can be modified
+		// for a larger range by adding "*((max-min)+1)+min".
+		double randomNumber = Math.random();  
+
+		if (randomNumber < 0.5)
+		{
+			phone.setScreen(0);
+			phone.setBattery(0);
+		}
+		else
+		{
+			phone.setScreen(1);
+			phone.setBattery(1);
+		}
+		
+		//	Generate a new random number.
+		randomNumber = Math.random();
+		
+		if (randomNumber < 0.5)
+		{
+			phone.setRAM(0);
+		}
+		else
+		{
+			phone.setRAM(1);
+		}
+		
+		//	Generate another new random number.
+		randomNumber = Math.random();
+		
+		if (randomNumber < 0.5)
+		{
+			phone.setStorage(0);
+		}
+		else
+		{
+			phone.setStorage(1);
+		}
+		
+		//Return randomly generated specification.
+		return phone;
+	}
+}

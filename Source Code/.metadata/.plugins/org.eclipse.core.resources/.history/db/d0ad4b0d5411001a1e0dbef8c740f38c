@@ -1,0 +1,32 @@
+package supplyChain;
+
+//This class is used to translate the numerical forms the parts are stored as
+// within the system into plain English.
+public class PartTypes {
+	// These are the text forms of the different available parts for
+	//	each phone, they are stored here to be modified if needed.
+	private String[] screens = new String[] {"5\"", "7\""};
+	private String[] batteries = new String[] {"2000mAh", "3000mAh"};
+	private String[] RAMs = new String[] {"8Gb", "64Gb"};
+	private String[] storages= new String[] {"64Gb", "256Gb"};
+	
+	//	Method to request the list of Screen types.
+	public String[] listScreens() {
+		return screens;
+	}
+	
+	//	Method to request the list of Battery types.
+	public String[] listBatteries() {
+		return batteries;
+	}
+	
+	//	Method to request the list of RAM types.
+	public String[] listRAM() {
+		return RAMs;
+	}
+	
+	//	Method to request the list of Storage types.
+	public String[] listStorage() {
+		return storages;
+	}
+}

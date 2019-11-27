@@ -1,0 +1,14 @@
+package supplyChain;
+
+public class Order {
+	
+	// These are the text forms of the different available parts for
+	//	each phone, they are stored here to be modified if needed.
+	private String[] screens = new String[] {"5\"", "7\""};
+	private String[] batteries = new String[] {};
+	private String[] RAMs = new String[] {};
+	private String[] storages= new String[] {};
+	
+	private int _screen;
+	
+}

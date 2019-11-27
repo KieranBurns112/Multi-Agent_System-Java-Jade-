@@ -1,0 +1,36 @@
+package supplyChain;
+
+import jade.core.Agent;
+
+public class Customer extends Agent {
+	protected void setup() {
+	
+		System.out.println("Agent "+getAID().getName()+" is active."); //Test line
+		generateOrder(); //test
+	}
+	
+	//	This method is hard-coded, but can easily be added to by changing the 
+	//	range of the generated random numbers, to encompass each possible phone 
+	//	part within the Order class.
+	private void generateOrder() {
+		Order order = new Order();
+		
+		// 2 is used to generate a random number between 0 and 1, can be modified
+		// for a larger range by using "((max-min)+1)+min" in the place of 2.
+		double randomNumber = Math.random()*2;  
+
+		if (randomNumber < 0.5)
+		{
+			order.setScreen(0);
+			
+		}
+		else
+		{
+			order.setScreen(1);
+			
+		}
+		
+		//	Generate a new random number.
+		randomNumber = Math.random()*2;
+	}
+}

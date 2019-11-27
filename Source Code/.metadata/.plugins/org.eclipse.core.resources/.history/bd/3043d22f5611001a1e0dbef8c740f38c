@@ -1,0 +1,10 @@
+package supplyChain;
+
+public class Order {
+	
+	private PhoneSpecification _phone;
+	private int _quantity;
+	private int _days;
+	private int _price;
+	private int _penalty;
+}

@@ -1,0 +1,6 @@
+package supplyChain;
+
+public class Order {
+	
+	private PhoneSpecification _phone;
+}

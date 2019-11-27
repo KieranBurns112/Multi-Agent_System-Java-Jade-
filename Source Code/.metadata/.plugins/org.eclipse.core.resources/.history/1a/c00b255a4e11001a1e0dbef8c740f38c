@@ -1,0 +1,35 @@
+package supplyChain;
+
+public class Order {
+	
+	// These are the text forms of the different available parts for
+	//	each phone, they are stored here to be modified if needed.
+	private String[] screens = new String[] {"5\"", "7\""};
+	private String[] batteries = new String[] {"2000mAh", "3000mAh"};
+	private String[] RAMs = new String[] {"8Gb", "64Gb"};
+	private String[] storages= new String[] {"64Gb", "256Gb"};
+	
+	//	Local versions of variables used in get-set.
+	private int _screen;
+	private int _battery;
+	private int _ram;
+	private int _storage;
+	
+	//	Get and Set screen variable.
+	public int getScreen() {
+		return _screen;
+	}
+	
+	public void setScreen(int newScreen) {
+		this._screen = newScreen;
+	}
+	
+	//	Get and Set battery variable.
+	public int getBattery() {
+		return _battery;
+	}
+	
+	public void setBattery(int newBattery) {
+		this._battery = newBattery;
+	}
+}

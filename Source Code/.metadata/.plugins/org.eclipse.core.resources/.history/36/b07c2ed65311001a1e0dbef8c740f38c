@@ -1,0 +1,78 @@
+package supplyChain;
+
+public class Order {
+	
+	// These are the text forms of the different available parts for
+	//	each phone, they are stored here to be modified if needed.
+	private String[] screens = new String[] {"5\"", "7\""};
+	private String[] batteries = new String[] {"2000mAh", "3000mAh"};
+	private String[] RAMs = new String[] {"8Gb", "64Gb"};
+	private String[] storages= new String[] {"64Gb", "256Gb"};
+	
+	//	Local versions of variables used in get-set.
+	private int _screen;
+	private int _battery;
+	private int _ram;
+	private int _storage;
+	
+	//	Get and Set Screen variable.
+	public int getScreen() {
+		return _screen;
+	}
+	
+	public void setScreen(int newScreen) {
+		this._screen = newScreen;
+	}
+	
+	//	Get and Set Battery variable.
+	public int getBattery() {
+		return _battery;
+	}
+	
+	public void setBattery(int newBattery) {
+		this._battery = newBattery;
+	}
+	
+	//	Get and Set RAM variable.
+	public int getRAM() {
+		return _ram;
+	}
+	
+	public void setRAM(int newRAM) {
+		this._ram = newRAM;
+	}
+	
+	//	Get and Set Storage variable.
+	public int getStorage() {
+		return _storage;
+	}
+	
+	public void setStorage(int newStorage) {
+		this._storage = newStorage;
+	}
+	
+	
+	//The Following methods are all used for human interaction purposed 
+	//and serve no utility to the agents.
+	
+	
+	//	Method to request the list of Screen types.
+	public String[] listScreens() {
+		return screens;
+	}
+	
+	//	Method to request the list of Battery types.
+	public String[] listBatteries() {
+		return batteries;
+	}
+	
+	//	Method to request the list of RAM types.
+	public String[] listRAM() {
+		return RAMs;
+	}
+	
+	//	Method to request the list of Storage types.
+	public String[] listStorage() {
+		return storages;
+	}
+}

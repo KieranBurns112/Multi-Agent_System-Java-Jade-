@@ -1,0 +1,10 @@
+package supplyChain;
+
+public class PartTypes {
+	// These are the text forms of the different available parts for
+	//	each phone, they are stored here to be modified if needed.
+	private String[] screens = new String[] {"5\"", "7\""};
+	private String[] batteries = new String[] {"2000mAh", "3000mAh"};
+	private String[] RAMs = new String[] {"8Gb", "64Gb"};
+	private String[] storages= new String[] {"64Gb", "256Gb"};
+}
