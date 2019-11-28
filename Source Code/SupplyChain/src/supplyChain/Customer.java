@@ -1,40 +1,47 @@
 package supplyChain;
 
+import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 public class Customer extends Agent {
+	Order order;
+	private AID systemTicker;
+	
+	@Override
 	protected void setup() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("customer");
+		sd.setName(getLocalName() + "-customer-agent");
+		dfd.addServices(sd);
+		try {
+			DFService.register(this, dfd);
+		}
+		catch (FIPAException e) {
+			e.printStackTrace();
+		}
 		
-		//Create order with all details to send to manufacturer.
-		Order order = generateOrder(); 
-		
-		//!! Test to check if order works !!
-		///
-		///
-		
-		PartTypes partTypes = new PartTypes();
-		
-		String outputLine = "Agent "+getAID().getName()+"'s order: ";
-		PhoneSpecification orderPhone = order.getPhone();
-		
-		outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";
-		outputLine += partTypes.listBatteries() [orderPhone.getBattery()] + ", ";
-		outputLine += partTypes.listRAM() [orderPhone.getRAM()] + ", ";
-		outputLine += partTypes.listStorage() [orderPhone.getStorage()];
-		
-		outputLine += "  |  Quantity: " + order.getQuantity();
-		outputLine += "  |  Due in " + order.getDays() + " days.";
-		outputLine += "  |  £" + order.getPrice() + " per unit.";
-		outputLine += "  |  £" + order.getPenalty() + " penalty per day past due date.";
-		
-		System.out.println(outputLine);
-
-		//
-		//
-		// !! End of Test !!
-		
-		
-		//SEND ORDER TO MANUFACTURER.
+		addBehaviour(new AwaitTicker(this));
+	}
+	
+	@Override
+	protected void takeDown() {
+		try {
+			DFService.deregister(this);
+		}
+		catch (FIPAException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private PhoneSpecification generatePhone() {
@@ -104,4 +111,122 @@ public class Customer extends Agent {
 		//Return Order.
 		return thisOrder;
 	}
+	
+	public class AwaitTicker extends CyclicBehaviour {
+		
+		public AwaitTicker(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) { 
+				if (systemTicker == null) {
+					systemTicker = msg.getSender();
+				}
+				
+				if (msg.getContent().equals("new day")) {
+					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					
+					dailyActivity.addSubBehaviour(new PrepareOrder(myAgent));
+					dailyActivity.addSubBehaviour(new SendOrder(myAgent));
+					dailyActivity.addSubBehaviour(new GetReply(myAgent));
+					dailyActivity.addSubBehaviour(new EndDay(myAgent));
+					
+					myAgent.addBehaviour(dailyActivity);
+				}
+				else {
+					myAgent.doDelete();
+				}
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	public class PrepareOrder extends OneShotBehaviour {
+		
+		public PrepareOrder(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			//Create order with all details to send to manufacturer.
+			order = generateOrder(); 
+		}
+	}
+	
+	public class SendOrder extends OneShotBehaviour {
+		
+		public SendOrder(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+
+			
+			
+			
+			// !! SEND ORDER TO MANUFACTURER AGENT !!
+			
+			
+			
+			
+			//!! Test to check if order works !!			
+			PartTypes partTypes = new PartTypes();
+			
+			String outputLine = "Agent "+getAID().getName()+"'s order: ";
+			PhoneSpecification orderPhone = order.getPhone();
+			
+			outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";
+			outputLine += partTypes.listBatteries() [orderPhone.getBattery()] + ", ";
+			outputLine += partTypes.listRAM() [orderPhone.getRAM()] + ", ";
+			outputLine += partTypes.listStorage() [orderPhone.getStorage()];
+			
+			outputLine += "  |  Quantity: " + order.getQuantity();
+			outputLine += "  |  Due in " + order.getDays() + " days.";
+			outputLine += "  |  £" + order.getPrice() + " per unit.";
+			outputLine += "  |  £" + order.getPenalty() + " penalty per day past due date.";
+			
+			System.out.println(outputLine);
+			// !! End of Test !!	
+		}
+	}
+	
+	public class GetReply extends OneShotBehaviour {
+		
+		public GetReply(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			
+			
+			// !! AWAIT REPLY FROM MANUFACTURER !!
+			
+			// !! REQUIRES BOTH ACCEPT AND REJECT CLAUSES !!
+			
+		}
+	}
+	
+	public class EndDay extends OneShotBehaviour {
+		
+		public EndDay(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.addReceiver(systemTicker);
+			msg.setContent("done");
+			myAgent.send(msg);
+		}	
+	}	
 }

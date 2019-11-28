@@ -30,12 +30,14 @@ public class Application {
 			}
 			
 			AgentController supplier;
-			// !! loop size (2) is hard-coded until I work out what I'm doing with the suppliers !!
 			for (int i = 0; i < 2; i++)		
 			{
 				supplier = myContainer.createNewAgent("supplier" + (i+1), Supplier.class.getCanonicalName(), null);
 				supplier.start();
 			}
+			
+			AgentController systemTicker = myContainer.createNewAgent("ticker", SystemTicker.class.getCanonicalName(), null);
+			systemTicker.start();
 			
 		}
 		catch(Exception e) {
