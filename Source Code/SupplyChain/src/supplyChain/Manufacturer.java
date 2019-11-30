@@ -1,5 +1,14 @@
 package supplyChain;
 
+import java.util.ArrayList;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.lang.Codec.CodecException;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -11,15 +20,25 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import supplyChain_ontology.SupplyChainOntology;
+import supplyChain_ontology.elements.*;
 
 public class Manufacturer extends Agent{
+	private Codec codec = new SLCodec();
+	private Ontology ontology = SupplyChainOntology.getInstance();	
 	//Daily cost of each component stored overnight
 	//	instead of being used.
-	int storageCost = 5; // "w"
+	private int storageCost = 5; // "w"
 	private AID systemTicker;
+	private int todaysCustomers = 0;
+	private ArrayList<Order> allOrders = new ArrayList<>();
+	private ArrayList<Order> processingOrders = new ArrayList<>();
 	
 	@Override
 	protected void setup() {
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+		
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -33,11 +52,9 @@ public class Manufacturer extends Agent{
 			e.printStackTrace();
 		}
 		
+		addBehaviour(new ReceiveOrders());
 		addBehaviour(new AwaitTicker(this));
 		
-		//
-		System.out.println("Agent "+getAID().getName()+" is active."); //Test line
-		//
 	}
 	
 	@Override
@@ -47,6 +64,30 @@ public class Manufacturer extends Agent{
 		}
 		catch (FIPAException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public class ReceiveOrders extends CyclicBehaviour {
+		
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
+			ACLMessage msg = receive(mt);
+			if (msg != null) {
+				try {	
+					Order order = (Order) getContentManager().extractContent(msg);	
+								
+					processingOrders.add(order);
+					
+					todaysCustomers++;
+				}
+				catch (CodecException ce) {
+					ce.printStackTrace();
+				}
+				catch (OntologyException oe) {
+					oe.printStackTrace();
+				} 
+			}
 		}
 	}
 	
@@ -114,10 +155,25 @@ public class Manufacturer extends Agent{
 		@Override
 		public void action() {
 			
+			int totalCustomers = 0;
 			
-			// !! Receive orders from all Customer agents !!
+			DFAgentDescription customerTemplate = new DFAgentDescription();
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("customer");
+			customerTemplate.addServices(sd);
 			
+			try {
+				DFAgentDescription[] allCustomers = DFService.search(myAgent, customerTemplate);
+				totalCustomers = allCustomers.length;
+			}
+			catch (FIPAException e) {
+				e.printStackTrace();
+			}
 			
+			if (todaysCustomers != totalCustomers) {
+				block();
+			}
+
 		}
 	}
 	
@@ -130,10 +186,52 @@ public class Manufacturer extends Agent{
 		@Override
 		public void action() {
 			
+			for (int i = 0; i < processingOrders.size(); i++) {
+				
+				// !! Decide which orders from the Customers to accept and reject !!
+				// THIS IS THE MANUFACTURER AGENT CONTROL STRATEGY!!!!!
+				// Possibly use an external class function to do this process, which
+				//  has a single Order instance passed in, then returns a "true or false"
+				//	answer whether to accept the order or not.
+				boolean acceptOrder = true; 
+				//^!!This is the answer!!^
+				
+				if (acceptOrder) {
+					allOrders.add(processingOrders.get(i));
+					//Set message to be returned to this customer to "Request Accepted"
+				}
+				else {
+					//Set message to be returned to this customer to "Request Denied"
+				}
+			}
+			processingOrders.clear();
 			
-			// !! Decide which orders from the Customers to accept and reject !!
 			
-			
+			for (int i = 0; i < allOrders.size(); i++) {
+				
+				
+				//!! Test to check if order works !!			
+				PartTypes partTypes = new PartTypes();
+	
+				String outputLine = "Agent "+ allOrders.get(i).getCustomer().getName()+"'s order: ";
+				PhoneSpecification orderPhone = allOrders.get(i).getPhone();
+	
+				outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";
+				outputLine += partTypes.listBatteries() [orderPhone.getBattery()] + ", ";
+				outputLine += partTypes.listRAM() [orderPhone.getRAM()] + ", ";
+				outputLine += partTypes.listStorage() [orderPhone.getStorage()];
+	
+				outputLine += "  |  Quantity: " + allOrders.get(i).getQuantity();
+				outputLine += "  |  Due in " + allOrders.get(i).getDays() + " days.";
+				outputLine += "  |  £" + allOrders.get(i).getPrice() + " per unit.";
+				outputLine += "  |  £" + allOrders.get(i).getPenalty() + " penalty per day past due date.";
+	
+				System.out.println(outputLine);
+				
+				//Cleanliness for testing
+				allOrders.clear();	
+				// !! End of Test !!
+			}
 		}
 	}
 	
@@ -209,6 +307,10 @@ public class Manufacturer extends Agent{
 		
 		@Override
 		public void action() {
+			
+			//Set all orders taken variable back to default value for next day.
+			todaysCustomers = 0;
+			
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.addReceiver(systemTicker);
 			msg.setContent("done");
@@ -216,9 +318,6 @@ public class Manufacturer extends Agent{
 		}
 	}	
 }
-	
-	
-	
 	
 	// 	For the order of which to tackle the list of orders, focus on "next day turnover"
 	//using a queue and only stocking for the next day from the 1 day delivery supplier.

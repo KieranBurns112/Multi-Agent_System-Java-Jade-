@@ -11,13 +11,27 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.content.lang.Codec;
+import jade.content.lang.Codec.CodecException;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import supplyChain_ontology.SupplyChainOntology;
+import supplyChain_ontology.elements.*;
+
 
 public class Customer extends Agent {
-	Order order;
+	private Codec codec = new SLCodec();
+	private Ontology ontology = SupplyChainOntology.getInstance();
+	private Order order;
 	private AID systemTicker;
+	private AID manufacturer;
 	
 	@Override
 	protected void setup() {
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+		
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -93,6 +107,9 @@ public class Customer extends Agent {
 		//Create instance of Order class. 
 		Order thisOrder = new Order();
 				
+		//Name of Customer Ordering
+		thisOrder.setCustomer(getAID());
+		
 		//Specification of phones being ordered
 		thisOrder.setPhone(generatePhone());
 				
@@ -132,6 +149,7 @@ public class Customer extends Agent {
 					
 					dailyActivity.addSubBehaviour(new PrepareOrder(myAgent));
 					dailyActivity.addSubBehaviour(new SendOrder(myAgent));
+					dailyActivity.addSubBehaviour(new FindManufacturer(myAgent));
 					dailyActivity.addSubBehaviour(new GetReply(myAgent));
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
@@ -160,6 +178,31 @@ public class Customer extends Agent {
 		}
 	}
 	
+	public class FindManufacturer extends OneShotBehaviour {
+		
+		public FindManufacturer(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("manufacturer");
+			manufacturerTemplate.addServices(sd);
+			
+			//Since there SHOULD only be one Manufacturer in the system, only the first found active
+			//manufacturer will be recorded.
+			try {
+				DFAgentDescription[] manufacturers = DFService.search(myAgent, manufacturerTemplate);
+				manufacturer = manufacturers[0].getName();
+			}
+			catch (FIPAException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public class SendOrder extends OneShotBehaviour {
 		
 		public SendOrder(Agent agent) {
@@ -169,32 +212,21 @@ public class Customer extends Agent {
 		@Override
 		public void action() {
 
+			ACLMessage thisOrder = new ACLMessage(ACLMessage.CFP);
+			thisOrder.addReceiver(manufacturer);
+			thisOrder.setLanguage(codec.getName());
+			thisOrder.setOntology(ontology.getName());
 			
-			
-			
-			// !! SEND ORDER TO MANUFACTURER AGENT !!
-			
-			
-			
-			
-			//!! Test to check if order works !!			
-			PartTypes partTypes = new PartTypes();
-			
-			String outputLine = "Agent "+getAID().getName()+"'s order: ";
-			PhoneSpecification orderPhone = order.getPhone();
-			
-			outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";
-			outputLine += partTypes.listBatteries() [orderPhone.getBattery()] + ", ";
-			outputLine += partTypes.listRAM() [orderPhone.getRAM()] + ", ";
-			outputLine += partTypes.listStorage() [orderPhone.getStorage()];
-			
-			outputLine += "  |  Quantity: " + order.getQuantity();
-			outputLine += "  |  Due in " + order.getDays() + " days.";
-			outputLine += "  |  £" + order.getPrice() + " per unit.";
-			outputLine += "  |  £" + order.getPenalty() + " penalty per day past due date.";
-			
-			System.out.println(outputLine);
-			// !! End of Test !!	
+			try {
+				getContentManager().fillContent(thisOrder, order);
+				send(thisOrder);
+			}
+			catch (CodecException ce) {
+				ce.printStackTrace();
+			}
+			catch (OntologyException oe) {
+				oe.printStackTrace();
+			} 	
 		}
 	}
 	
