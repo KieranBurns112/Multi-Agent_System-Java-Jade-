@@ -1,0 +1,7 @@
+package supplyChain;
+
+public class Supplier1_info {
+	
+	private String[] items = {"", ""};
+	private int[] prices = {1,2};
+}

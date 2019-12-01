@@ -1,0 +1,56 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Predicate;
+import jade.core.AID ;
+
+public class PartsRequest implements Predicate {
+	private AID _manufacturer;
+	private int _screen_5inch;
+	private int _screen_7inch;
+	private int _storage_64Gb;
+	private int _storage_256Gb;
+	private int _ram_4Gb;
+	private int _ram_8Gb;
+	private int _battery_2000mAh;
+	private int _battery_3000mAh;
+	
+	public AID getManufacturer() {
+		return _manufacturer;
+	}
+	
+	public void setManufactuer(AID newManufacturer) {
+		this._manufacturer = newManufacturer;
+	}
+	
+	public int getScreen_5inch() {
+		return _screen_5inch;
+	}
+	
+	public void setScreen_5inch(int newScreen_5inch) {
+		this._screen_5inch = newScreen_5inch;
+	}
+	
+	public int getScreen_7inch() {
+		return _screen_7inch;
+	}
+	
+	public void setScreen_7inch(int newScreen_7inch) {
+		this._screen_7inch = newScreen_7inch;
+	}
+	
+	public int getStorage_64Gb() {
+		return _storage_64Gb;
+	}
+	
+	public void setStorage_64Gb(int newStorage_64Gb) {
+		this._storage_64Gb = newStorage_64Gb;
+	}
+	
+	public int getStorage_256Gb() {
+		return _storage_256Gb;
+	}
+	
+	public void setStorage_256Gb(int newStorage_256Gb) {
+		this._storage_256Gb = newStorage_256Gb;
+	}
+}

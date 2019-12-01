@@ -1,7 +1,0 @@
-package supplyChain;
-
-import jade.core.Agent;
-
-public class Manufacturer extends Agent{
-
-}

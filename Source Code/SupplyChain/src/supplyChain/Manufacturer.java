@@ -1,16 +1,13 @@
 package supplyChain;
 
+import jade.core.AID;
+import jade.core.Agent;
 import java.util.ArrayList;
-import jade.content.Concept;
-import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
-import jade.core.AID;
-import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
@@ -23,7 +20,10 @@ import jade.lang.acl.MessageTemplate;
 import supplyChain_ontology.SupplyChainOntology;
 import supplyChain_ontology.elements.*;
 
+
 public class Manufacturer extends Agent{
+	//The variable that tracks all monetary interactions with manufacturer - both earnings and losses.
+	private int currentFunds = 0;
 	private Codec codec = new SLCodec();
 	private Ontology ontology = SupplyChainOntology.getInstance();	
 	//Daily cost of each component stored overnight
@@ -33,6 +33,13 @@ public class Manufacturer extends Agent{
 	private int todaysCustomers = 0;
 	private ArrayList<Order> allOrders = new ArrayList<>();
 	private ArrayList<Order> processingOrders = new ArrayList<>();
+	private PartsList currentStock = new PartsList();
+	private PartsList requiredStock = new PartsList();
+	private ArrayList<PartsInvoice> pendingDelivery = new ArrayList<>();
+	private Order order;
+	private int step = 0;
+	int totalCustomers = 0;
+	boolean partsConfirmed = false;
 	
 	@Override
 	protected void setup() {
@@ -52,8 +59,8 @@ public class Manufacturer extends Agent{
 			e.printStackTrace();
 		}
 		
-		addBehaviour(new ReceiveOrders());
 		addBehaviour(new AwaitTicker(this));
+		// Receive Parts Behaviour
 		
 	}
 	
@@ -67,28 +74,37 @@ public class Manufacturer extends Agent{
 		}
 	}
 	
-	public class ReceiveOrders extends CyclicBehaviour {
+	private PartsList combinePartsLists(PartsList partsListA, PartsList partsListB) {
+		PartsList partsListOut = new PartsList();
 		
-		@Override
-		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
-			ACLMessage msg = receive(mt);
-			if (msg != null) {
-				try {	
-					Order order = (Order) getContentManager().extractContent(msg);	
-								
-					processingOrders.add(order);
-					
-					todaysCustomers++;
-				}
-				catch (CodecException ce) {
-					ce.printStackTrace();
-				}
-				catch (OntologyException oe) {
-					oe.printStackTrace();
-				} 
-			}
-		}
+		partsListOut.setScreen_5inch(partsListA.getScreen_5inch() + partsListB.getScreen_5inch());
+		partsListOut.setScreen_7inch(partsListA.getScreen_7inch() + partsListB.getScreen_7inch());
+		partsListOut.setBattery_2000mAh(partsListA.getBattery_2000mAh() + partsListB.getBattery_2000mAh());
+		partsListOut.setBattery_3000mAh(partsListA.getBattery_3000mAh() + partsListB.getBattery_3000mAh());
+		partsListOut.setRAM_4Gb(partsListA.getRAM_4Gb() + partsListB.getRAM_4Gb());
+		partsListOut.setRAM_8Gb(partsListA.getRAM_8Gb() + partsListB.getRAM_8Gb());
+		partsListOut.setStorage_64Gb(partsListA.getStorage_64Gb() + partsListB.getStorage_64Gb());
+		partsListOut.setStorage_256Gb(partsListA.getStorage_256Gb() + partsListB.getStorage_256Gb());
+		
+		return partsListOut;
+	}
+	
+	private int todaysWarehouseCost () {
+		//Cost is all parts added together, multiplied by "storageCost" (w).
+		int cost = 0;
+		
+		cost += currentStock.getScreen_5inch();
+		cost += currentStock.getScreen_7inch();
+		cost += currentStock.getBattery_2000mAh();
+		cost += currentStock.getBattery_3000mAh();
+		cost += currentStock.getRAM_4Gb();
+		cost += currentStock.getRAM_8Gb();
+		cost += currentStock.getStorage_64Gb();
+		cost += currentStock.getStorage_256Gb();
+		
+		cost = cost*storageCost;
+		
+		return cost;
 	}
 	
 	public class AwaitTicker extends CyclicBehaviour {
@@ -109,18 +125,17 @@ public class Manufacturer extends Agent{
 				if (msg.getContent().equals("new day")) {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
 					
-					dailyActivity.addSubBehaviour(new ReceiveParts(myAgent));
+					dailyActivity.addSubBehaviour(new NewDay(myAgent));
 					dailyActivity.addSubBehaviour(new AwaitOrders(myAgent));
 					dailyActivity.addSubBehaviour(new DecideOrders(myAgent));
-					dailyActivity.addSubBehaviour(new ReplyAcceptOrDeny(myAgent));
 					dailyActivity.addSubBehaviour(new OrderParts(myAgent));
-					dailyActivity.addSubBehaviour(new AssemblePhones(myAgent));
-					dailyActivity.addSubBehaviour(new ShipPhones(myAgent));
+					dailyActivity.addSubBehaviour(new AssembleAndShipPhones(myAgent));
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
 				}
 				else {
+					System.out.println("Total earnings: £" + currentFunds);
 					myAgent.doDelete();
 				}
 			}
@@ -130,20 +145,35 @@ public class Manufacturer extends Agent{
 		}
 	}
 	
-	public class ReceiveParts extends OneShotBehaviour {
+	public class NewDay extends OneShotBehaviour {
 		
-		public ReceiveParts(Agent agent) {
+		public NewDay(Agent agent) {
 			super(agent);
 		}
 		
-		@Override
 		public void action() {
+			if (allOrders.size() > 0) {
+				for (int i = 0; i < allOrders.size(); i++) {
+					allOrders.get(i).setDays(allOrders.get(i).getDays() - 1);
+				}
+			}
 			
-			
-			// !! Receive ordered parts from Suppliers !!
-			
-			
+			if (pendingDelivery.size() > 0) {
+				for (int i = 0; i < pendingDelivery.size(); i++) {
+					pendingDelivery.get(i).setDueDays(pendingDelivery.get(i).getDueDays() - 1);
+				}
+				
+				ArrayList<PartsInvoice> deliveryToday = new ArrayList<>();
+				for (PartsInvoice invoice : pendingDelivery) {
+					if (invoice.getDueDays() == 0) {
+						deliveryToday.add(invoice);
+						currentStock = combinePartsLists(currentStock, invoice.getParts());
+					}
+				}
+				pendingDelivery.removeAll(deliveryToday);
+			}	
 		}
+		
 	}
 	
 	public class AwaitOrders extends OneShotBehaviour {
@@ -154,26 +184,49 @@ public class Manufacturer extends Agent{
 		
 		@Override
 		public void action() {
-			
-			int totalCustomers = 0;
-			
-			DFAgentDescription customerTemplate = new DFAgentDescription();
-			ServiceDescription sd = new ServiceDescription();
-			sd.setType("customer");
-			customerTemplate.addServices(sd);
-			
-			try {
-				DFAgentDescription[] allCustomers = DFService.search(myAgent, customerTemplate);
-				totalCustomers = allCustomers.length;
+			switch(step) {		
+			case 0:
+				
+				DFAgentDescription customerTemplate = new DFAgentDescription();
+				ServiceDescription sd = new ServiceDescription();
+				sd.setType("customer");
+				customerTemplate.addServices(sd);
+				
+				try {
+					DFAgentDescription[] allCustomers = DFService.search(myAgent, customerTemplate);
+					totalCustomers = allCustomers.length;
+				}
+				catch (FIPAException e) {
+					e.printStackTrace();
+				}
+				step++;
+				
+			case 1:
+				while (todaysCustomers != totalCustomers) {
+					MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+					ACLMessage msg = receive(mt);
+					if (msg != null) {
+						try {	
+							order = (Order) getContentManager().extractContent(msg);	
+										
+							processingOrders.add(order);
+							
+							todaysCustomers++;
+						}
+						catch (CodecException ce) {
+							ce.printStackTrace();
+						}
+						catch (OntologyException oe) {
+							oe.printStackTrace();
+						} 
+					}
+					else {
+						block();
+					}	
+				}
+				step++;
+				break;
 			}
-			catch (FIPAException e) {
-				e.printStackTrace();
-			}
-			
-			if (todaysCustomers != totalCustomers) {
-				block();
-			}
-
 		}
 	}
 	
@@ -193,60 +246,68 @@ public class Manufacturer extends Agent{
 				// Possibly use an external class function to do this process, which
 				//  has a single Order instance passed in, then returns a "true or false"
 				//	answer whether to accept the order or not.
-				boolean acceptOrder = true; 
+				boolean acceptOrder = false; 
 				//^!!This is the answer!!^
 				
-				if (acceptOrder) {
-					allOrders.add(processingOrders.get(i));
-					//Set message to be returned to this customer to "Request Accepted"
-				}
-				else {
-					//Set message to be returned to this customer to "Request Denied"
-				}
-			}
-			processingOrders.clear();
-			
-			
-			for (int i = 0; i < allOrders.size(); i++) {
 				
 				
-				//!! Test to check if order works !!			
+				
+				
+				
+				/*
+				//!!Test to display the randomised orders!!			
 				PartTypes partTypes = new PartTypes();
 	
-				String outputLine = "Agent "+ allOrders.get(i).getCustomer().getName()+"'s order: ";
-				PhoneSpecification orderPhone = allOrders.get(i).getPhone();
+				String outputLine = "Agent "+ processingOrders.get(i).getCustomer().getName()+"'s order: ";
+				PhoneSpecification orderPhone = processingOrders.get(i).getPhone();
 	
-				outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";
+				outputLine += partTypes.listScreens() [orderPhone.getScreen()] + ", ";					
 				outputLine += partTypes.listBatteries() [orderPhone.getBattery()] + ", ";
 				outputLine += partTypes.listRAM() [orderPhone.getRAM()] + ", ";
 				outputLine += partTypes.listStorage() [orderPhone.getStorage()];
-	
-				outputLine += "  |  Quantity: " + allOrders.get(i).getQuantity();
-				outputLine += "  |  Due in " + allOrders.get(i).getDays() + " days.";
-				outputLine += "  |  £" + allOrders.get(i).getPrice() + " per unit.";
-				outputLine += "  |  £" + allOrders.get(i).getPenalty() + " penalty per day past due date.";
-	
+		
+				outputLine += "  |  Quantity: " + processingOrders.get(i).getQuantity();
+				outputLine += "  |  Due in " + processingOrders.get(i).getDays() + " days.";
+				outputLine += "  |  £" + processingOrders.get(i).getPrice() + " per unit.";
+				outputLine += "  |  £" + processingOrders.get(i).getPenalty() + " penalty per day past due date.";
+		
 				System.out.println(outputLine);
+				//!End of test!!
+				*/
 				
-				//Cleanliness for testing
-				allOrders.clear();	
-				// !! End of Test !!
+				
+				AID currentCustomer = processingOrders.get(i).getCustomer();
+				
+				ACLMessage reply;
+				
+				if (acceptOrder) {
+					allOrders.add(processingOrders.get(i));
+					
+					
+					
+					
+					
+					
+					
+					//!!Add all required parts by the day's accepted orders to requiredStock!!
+					
+					
+					
+					
+					
+					
+					
+					reply = new ACLMessage(ACLMessage.AGREE);
+					reply.setContent("order confirm");
+				}
+				else {
+					reply = new ACLMessage(ACLMessage.REFUSE);
+					reply.setContent("order refuse");
+				}
+				reply.addReceiver(currentCustomer);
+				myAgent.send(reply);
 			}
-		}
-	}
-	
-	public class ReplyAcceptOrDeny extends OneShotBehaviour {
-		
-		public ReplyAcceptOrDeny(Agent agent) {
-			super(agent);
-		}
-		
-		@Override
-		public void action() {
-			
-			
-			// !! Reply to each of the customers with "accepted" or "rejected" for their orders !!
-			
+			processingOrders.clear();
 			
 		}
 	}
@@ -260,16 +321,82 @@ public class Manufacturer extends Agent{
 		@Override
 		public void action() {
 			
+			PartsList blankPartsList = new PartsList();
 			
-			// !! Order parts for each of the accepted phone orders !!
-			
-			
+			if (!requiredStock.equals(blankPartsList)) {
+				DFAgentDescription supplierTemplate = new DFAgentDescription();
+				ServiceDescription sd = new ServiceDescription();
+				sd.setType("supplier");
+				supplierTemplate.addServices(sd);
+				
+				//The manufacturer strategy of this manufacturer involves ordering from exclusively
+				//"Supplier1"
+				try {
+					DFAgentDescription[] suppliers = DFService.search(myAgent, supplierTemplate);
+					AID supplier1 = null;
+					
+					for (int i = 0; i < suppliers.length; i++) {
+						AID currentSupplier = suppliers[i].getName();
+						if (currentSupplier.getLocalName().equals("Supplier1")) {
+							supplier1 = currentSupplier;
+						}
+					}
+					
+					if (supplier1 != null) {
+						ACLMessage partsOrder = new ACLMessage(ACLMessage.REQUEST);
+						partsOrder.addReceiver(supplier1);
+						partsOrder.setLanguage(codec.getName());
+						partsOrder.setOntology(ontology.getName());
+						
+						PartsRequest content = new PartsRequest();
+						content.setManufacturer(getAID());
+						content.setParts(requiredStock);
+						
+						try {
+							getContentManager().fillContent(partsOrder, content);
+							send(partsOrder);						
+				
+							MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.AGREE);
+							ACLMessage msg = receive(mt);
+							if (msg != null) {
+								try {	
+									PartsInvoice invoice = (PartsInvoice) getContentManager().extractContent(msg);
+									pendingDelivery.add(invoice);
+									currentFunds -= invoice.getCost();
+									partsConfirmed = true;
+								}
+								catch (CodecException ce) {
+									ce.printStackTrace();
+								}
+								catch (OntologyException oe) {
+									oe.printStackTrace();
+								}
+							}
+							else {
+								block();
+							}
+						}
+						catch (CodecException ce) {
+							ce.printStackTrace();
+						}
+						catch (OntologyException oe) {
+							oe.printStackTrace();
+						} 	
+					}
+					else {
+						System.out.println("Parts Request NOT Sent: Couldn't find Supplier1!");
+					}
+				}
+				catch (FIPAException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
-	public class AssemblePhones extends OneShotBehaviour {
+	public class AssembleAndShipPhones extends OneShotBehaviour {
 		
-		public AssemblePhones(Agent agent) {
+		public AssembleAndShipPhones(Agent agent) {
 			super(agent);
 		}
 		
@@ -279,21 +406,9 @@ public class Manufacturer extends Agent{
 			
 			// !! Assemble the days orders with the stocked parts !!
 			
-			
-		}
-	}
-	
-	public class ShipPhones extends OneShotBehaviour {
-		
-		public ShipPhones(Agent agent) {
-			super(agent);
-		}
-		
-		@Override
-		public void action() {
-			
-			
 			// !! Ship all completed orders for the day, removing them from the queue of orders !!
+			
+			// !! Calculate any penalties on orders with days < 0 !!
 			
 			
 		}
@@ -306,10 +421,14 @@ public class Manufacturer extends Agent{
 		}
 		
 		@Override
-		public void action() {
+		public void action() {		
+			//Apply overnight parts storage costs.
+			currentFunds -= todaysWarehouseCost();
 			
-			//Set all orders taken variable back to default value for next day.
+			//Set all daily variables back to default.
 			todaysCustomers = 0;
+			step = 0;
+			partsConfirmed = false;
 			
 			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			msg.addReceiver(systemTicker);
@@ -318,6 +437,3 @@ public class Manufacturer extends Agent{
 		}
 	}	
 }
-	
-	// 	For the order of which to tackle the list of orders, focus on "next day turnover"
-	//using a queue and only stocking for the next day from the 1 day delivery supplier.

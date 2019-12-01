@@ -1,0 +1,133 @@
+package supplyChain;
+
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
+public class Supplier extends Agent{
+	private AID systemTicker;
+	private String[] stock;
+	private int[] prices;
+	private int deliveryDays;
+	
+	@Override
+	protected void setup() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("supplier");
+		sd.setName(getLocalName() + "-supplier-agent");
+		dfd.addServices(sd);
+		try {
+			DFService.register(this, dfd);
+		}
+		catch (FIPAException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println(this.getLocalName());
+		
+		if (this.getLocalName().equals("Supplier1")) {
+			Supplier1_info info = new Supplier1_info();
+			stock = info.Items();
+			prices = info.Prices();
+			deliveryDays = info.DeliveryDays();
+		}
+		else if (this.getLocalName().equals("Supplier2")) {
+			Supplier2_info info = new Supplier2_info();
+			stock = info.Items();
+			prices = info.Prices();
+			deliveryDays = info.DeliveryDays();
+		}
+		else {
+			System.out.println("Unable to load any supplier data");
+			this.doDelete();
+		}
+
+		
+		addBehaviour(new AwaitTicker(this));
+		addBehaviour(new ReceiveRequest(this));
+	}
+	
+	@Override
+	protected void takeDown() {
+		try {
+			DFService.deregister(this);
+		}
+		catch (FIPAException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public class AwaitTicker extends CyclicBehaviour {
+		
+		public AwaitTicker(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) { 
+				if (systemTicker == null) {
+					systemTicker = msg.getSender();
+				}
+				
+				if (msg.getContent().equals("new day")) {
+					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					
+					dailyActivity.addSubBehaviour(new EndDay(myAgent));
+					
+					myAgent.addBehaviour(dailyActivity);
+				}
+				else {
+					myAgent.doDelete();
+				}
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	public class EndDay extends OneShotBehaviour {
+		
+		public EndDay(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.addReceiver(systemTicker);
+			msg.setContent("done");
+			myAgent.send(msg);
+		}
+	}
+	
+	//Not part of the main daily behaviour as an order being sent is
+	//not certain each day, and not every supplier receives one.
+	//This class simply receives the parts request sent to it, then 
+	//accepts it by returning an invoice.
+	public class ReceiveRequest extends CyclicBehaviour {
+		
+		public ReceiveRequest(Agent agent) {
+			super(agent);
+		}
+		
+		@Override
+		public void action() {
+			
+		}
+		
+	}
+}

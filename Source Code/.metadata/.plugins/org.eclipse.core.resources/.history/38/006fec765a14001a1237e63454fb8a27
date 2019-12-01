@@ -1,0 +1,16 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Predicate;
+import jade.core.AID ;
+
+public class PartsRequest implements Predicate {
+	public AID _manufacturer;
+	
+	public AID getManufacturer() {
+		return _manufacturer;
+	}
+	
+	public void setManufactuer(AID newManufacturer) {
+		this._manufacurer = newManufacturer;
+	}
+}

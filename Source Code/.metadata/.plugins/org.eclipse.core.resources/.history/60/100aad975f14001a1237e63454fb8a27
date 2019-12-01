@@ -1,0 +1,25 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Predicate;
+
+public class PartsInvoice implements Predicate {
+	private PartsRequest _parts;
+	private int _cost;
+	private int _dueDays
+	
+	public PartsRequest getParts() {
+		return _parts;
+	}
+	
+	public void setParts(PartsRequest newParts) {
+		this._parts = newParts;
+	}
+	
+	public int getCost() {
+		return _cost;
+	}
+	
+	public void setCost(PartsRequest newCost) {
+		this._cost = newCost;
+	}
+}

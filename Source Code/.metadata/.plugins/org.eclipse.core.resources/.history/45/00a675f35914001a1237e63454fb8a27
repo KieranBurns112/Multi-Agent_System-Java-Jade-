@@ -1,0 +1,5 @@
+package supplyChain_ontology.elements;
+
+public class PartsRequest {
+
+}

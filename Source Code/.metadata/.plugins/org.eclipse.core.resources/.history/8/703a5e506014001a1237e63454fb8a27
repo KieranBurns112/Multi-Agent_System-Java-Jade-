@@ -1,0 +1,8 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Concept;
+import jade.content.onto.annotations.Slot;
+
+public class PartsList implements Concept {
+
+}

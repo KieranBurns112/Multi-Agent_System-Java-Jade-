@@ -1,0 +1,10 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Predicate;
+import jade.core.AID ;
+
+public class PartsRequest implements Predicate {
+
+	
+	
+}

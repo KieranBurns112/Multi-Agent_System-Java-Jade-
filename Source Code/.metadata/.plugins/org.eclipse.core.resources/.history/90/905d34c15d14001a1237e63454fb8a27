@@ -1,0 +1,24 @@
+package supplyChain_ontology.elements;
+
+import jade.content.Predicate;
+import jade.core.AID ;
+
+public class PartsRequest implements Predicate {
+	private AID _manufacturer;
+	private int _screen_5inch;
+	private int _screen_7inch;
+	private int _storage_64Gb;
+	private int _storage_256Gb;
+	private int _ram_4Gb;
+	private int _ram_8Gb;
+	private int _battery_2000mAh;
+	private int _battery_3000mAh;
+	
+	public AID getManufacturer() {
+		return _manufacturer;
+	}
+	
+	public void setManufactuer(AID newManufacturer) {
+		this._manufacturer = newManufacturer;
+	}
+}
