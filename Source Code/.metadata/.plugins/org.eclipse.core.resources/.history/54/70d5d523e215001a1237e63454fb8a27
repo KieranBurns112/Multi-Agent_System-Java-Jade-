@@ -62,6 +62,8 @@ public class Manufacturer extends Agent{
 		}
 		
 		addBehaviour(new AwaitTicker(this));
+		// Receive Parts Behaviour
+		
 	}
 	
 	@Override
@@ -116,8 +118,7 @@ public class Manufacturer extends Agent{
 		
 		@Override
 		public void action() {
-			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("termin"
-					+ "ate"));
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) { 
 				if (systemTicker == null) {
@@ -126,7 +127,7 @@ public class Manufacturer extends Agent{
 				
 				if (msg.getContent().equals("new day")) {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
-					//Do Daily Behaviours 
+					
 					dailyActivity.addSubBehaviour(new NewDay(myAgent));
 					dailyActivity.addSubBehaviour(new AwaitOrders(myAgent));
 					dailyActivity.addSubBehaviour(new DecideOrders(myAgent));
