@@ -277,7 +277,7 @@ public class Customer extends Agent {
 			ACLMessage msg = receive(mt);
 			if (msg != null) {
 				if (msg.getContent().equals("order completed")) {
-					System.out.println(getAID().getLocalName()+": My Delivery has Arrived!");
+					System.out.println(getAID().getLocalName()+": One of my orders has been delivered!");
 				}
 			}
 		}

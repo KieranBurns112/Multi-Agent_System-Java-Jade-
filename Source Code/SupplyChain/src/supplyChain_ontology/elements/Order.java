@@ -12,6 +12,12 @@ public class Order implements Predicate {
 	private int _price;
 	private int _penalty;
 	
+	//False by default, could be sent as true and no difference would be made.
+	//
+	//This is used by the Manufacturer as a way of tracking which orders have
+	// been accepted and which have not.
+	private boolean _accepted = false;
+	
 	//	Get and Set the customer variable, 
 	//  used to find the customer who purchased the phone.
 	public AID getCustomer() {
@@ -65,5 +71,14 @@ public class Order implements Predicate {
 	
 	public void setPenalty(int newPenalty) {
 		this._penalty = newPenalty;
+	}
+	
+	//	Get and Set Manufacturer acception variable.
+	public boolean getAccepted() {
+		return _accepted;
+	}
+	
+	public void setAccepted(boolean newAccepted) {
+		this._accepted = newAccepted;
 	}
 }

@@ -23,7 +23,7 @@ public class PartTypes {
 	}
 	
 	//	Method to request the list of ram types.
-	public String[] Listram() {
+	public String[] ListRAM() {
 		return ram;
 	}
 	
