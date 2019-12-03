@@ -122,6 +122,8 @@ public class Supplier extends Agent{
 				try {	
 					PartsRequest request = (PartsRequest) getContentManager().extractContent(msg);
 					
+					
+					
 					AID manufacturer = request.getManufacturer();
 					PartsList requestedParts = request.getParts();
 					
