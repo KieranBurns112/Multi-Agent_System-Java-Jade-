@@ -115,8 +115,9 @@ public class Manufacturer extends Agent{
 		}
 		
 		@Override
-		public void action() {			
-			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
+		public void action() {
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("termin"
+					+ "ate"));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) { 
 				if (systemTicker == null) {
@@ -136,6 +137,11 @@ public class Manufacturer extends Agent{
 					myAgent.addBehaviour(dailyActivity);
 				}
 				else {
+					//Spacing to clearly separate the final result from the final day.
+					System.out.println("");
+					
+					//Display total earnings over the whole simulation.
+					System.out.println("Total earnings: £" + totalProfit);				
 					myAgent.doDelete();
 				}
 			}
@@ -604,9 +610,6 @@ public class Manufacturer extends Agent{
 			
 			//Display the earnings for this day.
 			System.out.println("Todays earnings: £" + todaysProfit);
-			
-			//Display total earnings over the whole simulation.
-			System.out.println("Total earnings: £" + totalProfit);	
 			
 			//Set all daily variables back to default.
 			todaysCustomers = 0;

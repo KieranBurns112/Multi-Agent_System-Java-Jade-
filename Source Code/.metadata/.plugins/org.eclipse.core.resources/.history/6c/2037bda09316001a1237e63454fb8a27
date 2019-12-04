@@ -115,7 +115,8 @@ public class Manufacturer extends Agent{
 		}
 		
 		@Override
-		public void action() {			
+		public void action() {
+			System.out.println("");
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) { 

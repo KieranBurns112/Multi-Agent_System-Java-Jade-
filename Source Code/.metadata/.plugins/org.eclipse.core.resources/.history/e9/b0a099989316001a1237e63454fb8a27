@@ -115,8 +115,9 @@ public class Manufacturer extends Agent{
 		}
 		
 		@Override
-		public void action() {			
-			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("terminate"));
+		public void action() {
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"), MessageTemplate.MatchContent("termin"
+					+ "ate"));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) { 
 				if (systemTicker == null) {
@@ -136,6 +137,10 @@ public class Manufacturer extends Agent{
 					myAgent.addBehaviour(dailyActivity);
 				}
 				else {
+					
+					System.out.println("");
+					
+			
 					myAgent.doDelete();
 				}
 			}
