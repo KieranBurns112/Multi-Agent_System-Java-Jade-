@@ -579,7 +579,7 @@ public class Manufacturer extends Agent{
 					allOrders.remove(0);
 	
 					//Get rid of todaysOrder as it has been completed, allowing the loop
-					//	to end early if it has not yet hit 50 phones built today.
+					//	to end early is it has not yet hit 50 phones built today.
 					todaysOrder = new Order();
 				}
 			}
