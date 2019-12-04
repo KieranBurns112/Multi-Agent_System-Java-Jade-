@@ -152,6 +152,10 @@ public class Manufacturer extends Agent{
 		}
 		
 		public void action() {	
+			
+			//Spacing to clearly separate each simulated day in the console.
+			System.out.println("");
+			
 			if (allOrders.size() > 0) {		
 				todaysOrder = allOrders.get(0);
 				

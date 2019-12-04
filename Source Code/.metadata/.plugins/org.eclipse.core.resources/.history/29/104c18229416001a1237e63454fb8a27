@@ -138,6 +138,9 @@ public class SystemTicker extends Agent{
 		public int onEnd() {
 			System.out.println("End of day " + currentDay);
 			
+			//Spacing for display cleanliness.
+			System.out.println("");
+			
 			if (currentDay == simulationDays) {
 				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 				msg.setContent("terminate");
@@ -150,9 +153,6 @@ public class SystemTicker extends Agent{
 				myAgent.doDelete();
 			}
 			else {
-				//Spacing for display cleanliness.
-				System.out.println("");
-				
 				reset();
 				myAgent.addBehaviour(this);
 			}
