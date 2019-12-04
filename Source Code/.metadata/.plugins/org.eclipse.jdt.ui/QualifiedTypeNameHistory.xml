@@ -5,12 +5,14 @@
 <fullyQualifiedTypeName name="jade.AppletBoot"/>
 <fullyQualifiedTypeName name="jade.wrapper.AgentContainer"/>
 <fullyQualifiedTypeName name="jade.wrapper.ContainerController"/>
-<fullyQualifiedTypeName name="java.lang.System"/>
 <fullyQualifiedTypeName name="jade.core.Agent"/>
 <fullyQualifiedTypeName name="jade.domain.FIPAAgentManagement.DFAgentDescription"/>
 <fullyQualifiedTypeName name="jade.domain.FIPAAgentManagement.ServiceDescription"/>
 <fullyQualifiedTypeName name="supplyChain_ontology.SupplyChainOntology"/>
-<fullyQualifiedTypeName name="jade.content.Predicate"/>
 <fullyQualifiedTypeName name="jade.util.leap.ArrayList"/>
+<fullyQualifiedTypeName name="jade.content.Predicate"/>
+<fullyQualifiedTypeName name="java.util.List"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="supplyChain_ontology.elements.PartsList"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
 </qualifiedTypeNameHistroy>

@@ -10,7 +10,7 @@ public class Application {
 	public static void main(String[] args) {
 		
 		//parameter used to define how many customers are used in the system (default = 3)
-		int customers = 3; //"c"
+		int customers = 6; //"c"
 		
 		Profile myProfile = new ProfileImpl();
 		Runtime myRuntime = Runtime.instance();

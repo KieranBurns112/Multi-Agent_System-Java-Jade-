@@ -2,30 +2,37 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="todaysCustomers" key="selection"/>
+		<item value="BestP" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="currentCustomers"/>
-			<item value="customer"/>
-			<item value="Recieve"/>
-			<item value="phoneLine"/>
-			<item value="order"/>
+			<item value="bestp"/>
+			<item value="todaysProfit"/>
+			<item value="profit"/>
+			<item value="currentStock"/>
+			<item value="invent"/>
+			<item value="currentInv"/>
+			<item value="current"/>
+			<item value="&quot;&quot;"/>
 		</list>
 		<list key="replacehistory">
+			<item value="totalProfit"/>
+			<item value="Manufacturer"/>
+			<item value="_manufacturer"/>
+			<item value="ram"/>
+			<item value="PartsList"/>
 			<item value="todaysCustomers"/>
 			<item value="Receive"/>
 			<item value="outputLine"/>
-			<item value="phone"/>
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
 		<item value="284" key="DIALOG_WIDTH"/>
 		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
 		<item value="391" key="DIALOG_HEIGHT"/>
-		<item value="1249" key="DIALOG_X_ORIGIN"/>
-		<item value="334" key="DIALOG_Y_ORIGIN"/>
+		<item value="1624" key="DIALOG_X_ORIGIN"/>
+		<item value="68" key="DIALOG_Y_ORIGIN"/>
 	</section>
 </section>
